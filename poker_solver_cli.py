@@ -24,7 +24,7 @@ pocket aces, pocket kings and suited ace‑king over 5000 random deals.
 
 import argparse
 import random
-from typing import List
+from typing import List, Dict
 
 import poker_solver as ps
 
@@ -58,7 +58,17 @@ def parse_range(range_str: str) -> List[List[str]]:
     expanded into all specific two‑card combinations using
     ``UsualHandToComputingHandsInRange`` and concatenated into one list.
     """
-    parts = [part.strip().upper() for part in range_str.split(',') if part.strip()]
+    # Normalize descriptors without breaking suit/off-suit letter case.
+    # Keep third char ('s' or 'o') lowercase as expected by core functions.
+    raw_parts = [part.strip() for part in range_str.split(',') if part.strip()]
+    parts = []
+    for p in raw_parts:
+        if len(p) == 2:
+            parts.append(p.upper())
+        elif len(p) == 3:
+            parts.append(p[:2].upper() + p[2].lower())
+        else:
+            raise ValueError(f"Invalid range descriptor '{p}' (use forms like AA, AKs, QJo)")
     combos: List[List[str]] = []
     for descriptor in parts:
         combos.extend(ps.UsualHandToComputingHandsInRange(descriptor))
@@ -86,6 +96,71 @@ def calculate_equity(hero: List[str], villain_combos: List[List[str]], iteration
         else:
             lose += 1
     return (win + 0.5 * draw) / iterations
+
+
+def calculate_equity_details(hero: List[str], villain_combos: List[List[str]], iterations: int) -> Dict:
+    """Compute equity and distributions used for visualization.
+
+    Returns a dict with:
+      - equity, win_ratio, draw_ratio
+      - made_distribution, won_with_distribution, lost_to_distribution
+      - examples: up to a few example runouts with outcomes
+      - combo_count: number of villain combos considered
+    """
+    win = draw = lose = 0
+    made_counts = {k: 0 for k in [
+        "High Card", "Pair", "2 Pair", "Three of a kind",
+        "Straight", "Flush", "Full", "Four of a kind", "Straight Flush"
+    ]}
+    won_with_counts = {k: 0 for k in made_counts}
+    lost_to_counts = {k: 0 for k in made_counts}
+    examples = []
+
+    for i in range(iterations):
+        villain = random.choice(villain_combos)
+        runout = ps.RandomRunout(hero, villain)
+        hero_hand = ps.HandCategory(hero, runout)
+        villain_hand = ps.HandCategory(villain, runout)
+        result = ps.WinOrLose(hero, villain, runout)
+
+        made_counts[hero_hand[0][0]] += 1
+        if result == "win":
+            win += 1
+            won_with_counts[hero_hand[0][0]] += 1
+        elif result == "draw":
+            draw += 1
+        else:
+            lose += 1
+            lost_to_counts[villain_hand[0][0]] += 1
+
+        if i < 5:
+            examples.append({
+                "runout": runout,
+                "villain": villain,
+                "hero_hand": hero_hand[0][0],
+                "villain_hand": villain_hand[0][0],
+                "result": result,
+            })
+
+    total = iterations
+    equity = (win + 0.5 * draw) / total if total else 0.0
+    win_ratio = win / total if total else 0.0
+    draw_ratio = draw / total if total else 0.0
+
+    def to_freq(counts: Dict[str, int]) -> Dict[str, float]:
+        denom = sum(counts.values()) or 1
+        return {k: counts[k] / denom for k in counts}
+
+    return {
+        "equity": equity,
+        "win_ratio": win_ratio,
+        "draw_ratio": draw_ratio,
+        "made_distribution": to_freq(made_counts),
+        "won_with_distribution": to_freq(won_with_counts),
+        "lost_to_distribution": to_freq(lost_to_counts),
+        "examples": examples,
+        "combo_count": len(villain_combos),
+    }
 
 
 def main() -> None:

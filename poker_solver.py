@@ -303,8 +303,6 @@ def RandomRunoutCompleter (IncompleteRunout, Hero):
 
     RemainingCards = [item for item in PossibleCards if item not in UsedCards]
 
-    print (RemainingCards)
-
     for i in range(NumberOfMissingCards): 
         card = random.choice(RemainingCards)
         FinalRunout.append(card)
@@ -529,7 +527,7 @@ def HandCategory (Combo, CommunityCards) :
 
     return Hand, NumbersUsed
 
-HandCategory (["13s","10c"], ["13s","6d", "5h", "9d", "3c"])
+## Removed auto-execution: example call was running on import
 
 
 # In[26]:
@@ -558,7 +556,7 @@ def WinOrLose (Hero, Villain, communityCards) :
 
     return result
 
-WinOrLose(["14c","13c"],["2c","3h"], ["14s","13s","12s","11s","10s"])
+## Removed auto-execution: example call was running on import
 
 
 
@@ -707,10 +705,7 @@ def EquityCalculator (NumberOfIterations):
                 LostTo.append(VillainHand)
 
     else : 
-        print (Answers)
         for _ in range(NumberOfIterations):
-            print (len(MaybeIncompleteRunoutInComputing))
-            print ("MaybeIncompleteRunoutInComputing",MaybeIncompleteRunoutInComputing)
             if Answers[0] == "RandomVillain" : 
                 FlattenedRange = ["Only 1 hand"]
             for i in range(len(FlattenedRange)): 
@@ -720,10 +715,9 @@ def EquityCalculator (NumberOfIterations):
                     Runout = RandomRunout(Villain, Hero)
                 elif len(MaybeIncompleteRunoutInComputing)<5 : 
                     Runout = RandomRunoutCompleter (MaybeIncompleteRunoutInComputing, Hero)
-                    print ("completerwas called")
                 else : Runout = MaybeIncompleteRunoutInComputing
 
-                print (Runout)
+        
 
 
                 HeroHand = HandCategory(Hero, Runout)
@@ -804,7 +798,7 @@ def EquityCalculator (NumberOfIterations):
         *LossDetails,
     )
 
-EquityCalculator (1000)
+## Removed auto-execution: example call was running on import
 
 
 # In[ ]:
@@ -825,123 +819,7 @@ EquityCalculator (1000)
 
 
 
-# In[37]:
-
-
-import timeit
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Simulating flattened villain range with increasing size
-def simulate_villain_range(size):
-    return [f"Hand{i}" for i in range(size)]
-
-# Simulating the equity calculator
-def equity_calculator(flattened_range, num_iterations):
-    results = []
-    for _ in range(num_iterations):
-        for hand in flattened_range:
-            # Placeholder for actual calculation
-            results.append(hand)
-    return results
-
-# Wrapper function to analyze runtime
-def time_equity_calculator(flattened_range_size, num_iterations):
-    flattened_range = simulate_villain_range(flattened_range_size)
-    setup_code = f"from __main__ import equity_calculator, simulate_villain_range; flattened_range=simulate_villain_range({flattened_range_size})"
-    stmt = f"equity_calculator(flattened_range, {num_iterations})"
-    times = timeit.repeat(stmt=stmt, setup=setup_code, repeat=5, number=1)
-    return np.mean(times), np.std(times)
-
-# Measure runtime for varying flattened range sizes
-def analyze_by_range_size():
-    range_sizes = [10, 50, 100, 200, 500, 1000]  # Example input sizes
-    num_iterations = 100  # Fixed number of iterations for this analysis
-    mean_times = []
-    std_devs = []
-
-    for size in range_sizes:
-        mean_time, std_dev = time_equity_calculator(size, num_iterations)
-        mean_times.append(mean_time)
-        std_devs.append(std_dev)
-
-    # Plot the results
-    plt.figure(figsize=(8, 6))
-    plt.errorbar(range_sizes, mean_times, yerr=std_devs, fmt='-o', capsize=5, label='Runtime')
-    plt.title("Runtime vs Flattened Range Size (100 iterations)")
-    plt.xlabel("Flattened Range Size")
-    plt.ylabel("Execution Time (seconds)")
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-
-# Measure runtime for varying number of iterations
-def analyze_by_iterations():
-    range_size = 100  # Fixed range size for this analysis
-    iteration_counts = [10, 50, 100, 500, 1000, 5000]
-    mean_times = []
-    std_devs = []
-
-    for iterations in iteration_counts:
-        mean_time, std_dev = time_equity_calculator(range_size, iterations)
-        mean_times.append(mean_time)
-        std_devs.append(std_dev)
-
-    # Plot the results
-    plt.figure(figsize=(8, 6))
-    plt.errorbar(iteration_counts, mean_times, yerr=std_devs, fmt='-o', capsize=5, label='Runtime')
-    plt.title("Runtime vs Number of Iterations")
-    plt.xlabel("Number of Iterations")
-    plt.ylabel("Execution Time (seconds)")
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-
-# Run both analyses
-analyze_by_range_size()
-analyze_by_iterations()
-
-
-# In[39]:
-
-
-from mpl_toolkits.mplot3d import Axes3D
-
-# Measure runtime as a function of both flattened range size and number of iterations
-def analyze_combined():
-    range_sizes = [10, 50, 100, 200, 500]  # Example input sizes
-    iteration_counts = [10, 50, 100, 500, 1000]
-
-    runtimes = np.zeros((len(range_sizes), len(iteration_counts)))
-
-    # Collect runtime data
-    for i, size in enumerate(range_sizes):
-        for j, iterations in enumerate(iteration_counts):
-            mean_time, _ = time_equity_calculator(size, iterations)
-            runtimes[i, j] = mean_time
-
-    # Create a 3D plot
-    X, Y = np.meshgrid(iteration_counts, range_sizes)
-    Z = runtimes
-
-    fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection="3d")
-    ax.plot_surface(X, Y, Z, cmap="viridis")
-    ax.set_title("Runtime as a Function of Flattened Range Size and Iterations")
-    ax.set_xlabel("Number of Iterations")
-    ax.set_ylabel("Flattened Range Size")
-    ax.set_zlabel("Execution Time (seconds)")
-    plt.show()
-
-    # Create a heatmap for better visualization
-    plt.figure(figsize=(8, 6))
-    plt.imshow(runtimes, cmap="viridis", aspect="auto", origin="lower",
-               extent=[min(iteration_counts), max(iteration_counts), min(range_sizes), max(range_sizes)])
-    plt.colorbar(label="Execution Time (seconds)")
-    plt.title("Heatmap: Runtime vs Flattened Range Size and Iterations")
-    plt.xlabel("Number of Iterations")
-    plt.ylabel("Flattened Range Size")
-    plt.show()
+# Timing/plotting analysis moved to a separate module to avoid side effects on import.
 
 if __name__ == "__main__":
     """
@@ -958,7 +836,6 @@ if __name__ == "__main__":
     except (ValueError, EOFError):
         iterations = 1000
     result = EquityCalculator(iterations)
-    print("Equity Calculator output:", result)
 
 
 # In[ ]:
