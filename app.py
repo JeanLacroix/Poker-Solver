@@ -10,14 +10,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Poker Solver App</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 2rem; }
-  .container { max-width: 600px; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto; }
-  label { display: block; margin-top: 1rem; font-weight: bold; }
-  input[type="text"], input[type="number"] { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-  button { margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
-  button:hover { background: #0056b3; }
-  .result { margin-top: 1.5rem; font-weight: bold; }
-  .error { color: #c00; }
+  body {{ font-family: Arial, sans-serif; background: #f5f5f5; margin: 2rem; }}
+  .container {{ max-width: 600px; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto; }}
+  label {{ display: block; margin-top: 1rem; font-weight: bold; }}
+  input[type="text"], input[type="number"] {{ width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }}
+  button {{ margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }}
+  button:hover {{ background: #0056b3; }}
+  .result {{ margin-top: 1.5rem; font-weight: bold; }}
+  .error {{ color: #c00; }}
 </style>
 </head>
 <body>
