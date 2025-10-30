@@ -303,8 +303,6 @@ def RandomRunoutCompleter (IncompleteRunout, Hero):
 
     RemainingCards = [item for item in PossibleCards if item not in UsedCards]
 
-    print (RemainingCards)
-
     for i in range(NumberOfMissingCards): 
         card = random.choice(RemainingCards)
         FinalRunout.append(card)
@@ -707,10 +705,7 @@ def EquityCalculator (NumberOfIterations):
                 LostTo.append(VillainHand)
 
     else : 
-        print (Answers)
         for _ in range(NumberOfIterations):
-            print (len(MaybeIncompleteRunoutInComputing))
-            print ("MaybeIncompleteRunoutInComputing",MaybeIncompleteRunoutInComputing)
             if Answers[0] == "RandomVillain" : 
                 FlattenedRange = ["Only 1 hand"]
             for i in range(len(FlattenedRange)): 
@@ -720,10 +715,9 @@ def EquityCalculator (NumberOfIterations):
                     Runout = RandomRunout(Villain, Hero)
                 elif len(MaybeIncompleteRunoutInComputing)<5 : 
                     Runout = RandomRunoutCompleter (MaybeIncompleteRunoutInComputing, Hero)
-                    print ("completerwas called")
                 else : Runout = MaybeIncompleteRunoutInComputing
 
-                print (Runout)
+        
 
 
                 HeroHand = HandCategory(Hero, Runout)
@@ -842,7 +836,6 @@ if __name__ == "__main__":
     except (ValueError, EOFError):
         iterations = 1000
     result = EquityCalculator(iterations)
-    print("Equity Calculator output:", result)
 
 
 # In[ ]:
