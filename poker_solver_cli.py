@@ -58,12 +58,7 @@ def parse_range(range_str: str) -> List[List[str]]:
     expanded into all specific two‑card combinations using
     ``UsualHandToComputingHandsInRange`` and concatenated into one list.
     """
-<<<<<<< HEAD
     # Normalize descriptors: ranks uppercase, suited/off-suited marker lowercase
-=======
-    # Normalize descriptors without breaking suit/off-suit letter case.
-    # Keep third char ('s' or 'o') lowercase as expected by core functions.
->>>>>>> 6d864facab730ed8e654126ed5aff59c91dea7de
     raw_parts = [part.strip() for part in range_str.split(',') if part.strip()]
     parts = []
     for p in raw_parts:
@@ -105,15 +100,11 @@ def calculate_equity(hero: List[str], villain_combos: List[List[str]], iteration
 def calculate_equity_details(hero: List[str], villain_combos: List[List[str]], iterations: int) -> Dict:
     """Compute equity and distributions used for visualization.
 
-<<<<<<< HEAD
-    Returns a dict with equity, ratios, distributions and sample examples.
-=======
     Returns a dict with:
       - equity, win_ratio, draw_ratio
       - made_distribution, won_with_distribution, lost_to_distribution
       - examples: up to a few example runouts with outcomes
       - combo_count: number of villain combos considered
->>>>>>> 6d864facab730ed8e654126ed5aff59c91dea7de
     """
     win = draw = lose = 0
     made_counts = {k: 0 for k in [
