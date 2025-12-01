@@ -18,70 +18,393 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>Poker Solver App</title>
 <style>
-  body {{ font-family: Arial, sans-serif; background: #f5f5f5; margin: 2rem; }}
-  .container {{ max-width: 600px; background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin: 0 auto; }}
-  label {{ display: block; margin-top: 1rem; font-weight: bold; }}
-  input[type="text"], input[type="number"] {{ width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }}
-  button {{ margin-top: 1rem; padding: 0.5rem 1rem; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }}
-  button:hover {{ background: #0056b3; }}
-  .result {{ margin-top: 1.5rem; font-weight: bold; }}
-  .error {{ color: #c00; }}
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
+  :root {{
+    --bg: #0c1224;
+    --panel: #111833;
+    --card: #0d1b3d;
+    --accent: #56d4ff;
+    --accent-2: #7dffb5;
+    --text: #e9edf7;
+    --muted: #a5b3d1;
+    --danger: #ff6b6b;
+    --border: rgba(255,255,255,0.08);
+  }}
+  * {{ box-sizing: border-box; }}
+  body {{
+    margin: 0;
+    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at 20% 20%, rgba(86, 212, 255, 0.12), transparent 35%), 
+                radial-gradient(circle at 80% 0%, rgba(125, 255, 181, 0.14), transparent 30%),
+                var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 36px 20px 28px;
+    display: flex;
+    justify-content: center;
+  }}
+  .page {{
+    width: 100%;
+    max-width: 1240px;
+  }}
+  .container {{
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 20px;
+  }}
+  header {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }}
+  .brand {{
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }}
+  .chip {{
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(86, 212, 255, 0.12);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }}
+  .panel {{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }}
+  .panel h2 {{
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    letter-spacing: 0.02em;
+  }}
+  .section-caption {{
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }}
+  .section-block {{
+    border: 1px solid var(--border);
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+  }}
+  .section-header {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }}
+  .section-header h3 {{
+    margin: 0;
+    font-size: 16px;
+    letter-spacing: 0.01em;
+  }}
+  form {{
+    display: grid;
+    gap: 14px;
+  }}
+  label {{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 600;
+  }}
+  .hint {{
+    font-size: 12px;
+    color: var(--muted);
+  }}
+  .pill-row {{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }}
+  .pill {{
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.15s ease;
+  }}
+  .pill.active {{
+    background: rgba(86, 212, 255, 0.14);
+    border-color: rgba(86, 212, 255, 0.6);
+    color: var(--text);
+  }}
+  .pill.active::after {{
+    content: 'ON';
+    margin-left: 8px;
+    font-weight: 700;
+    color: var(--accent-2);
+  }}
+  input[type="text"], input[type="number"] {{
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+  }}
+  input::placeholder {{ color: var(--muted); }}
+  button {{
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    color: #05070f;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }}
+  button:hover {{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }}
+  .pill, button {{ font-family: 'Space Grotesk', 'Segoe UI', sans-serif; }}
+  .card-grid {{
+    display: grid;
+    grid-template-columns: repeat(13, minmax(32px, 1fr));
+    gap: 4px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+  }}
+  .card {{
+    padding: 8px 4px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }}
+  .card:hover {{ border-color: rgba(86, 212, 255, 0.4); }}
+  .card.sel {{
+    background: rgba(125, 255, 181, 0.14);
+    border-color: rgba(125, 255, 181, 0.7);
+    color: #dfffee;
+  }}
+  .hero-matrix {{
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+  }}
+  .hero-matrix th,
+  .hero-matrix td {{
+    border: 1px solid var(--border);
+    padding: 8px 6px;
+    text-align: center;
+    font-size: 12px;
+  }}
+  .hero-matrix th {{
+    color: var(--muted);
+    background: rgba(255,255,255,0.03);
+    font-weight: 600;
+  }}
+  .hero-cell {{
+    cursor: pointer;
+    background: rgba(255,255,255,0.02);
+    transition: all 0.12s ease;
+    font-weight: 700;
+  }}
+  .hero-cell:hover {{ background: rgba(86, 212, 255, 0.08); }}
+  .hero-cell.sel {{
+    background: rgba(125, 255, 181, 0.16);
+    color: #dfffee;
+    border-color: rgba(125, 255, 181, 0.6);
+  }}
+  .suit-s {{ color: #56d4ff; }}
+  .suit-c {{ color: #7dffb5; }}
+  .suit-h {{ color: #ff7b9c; }}
+  .suit-d {{ color: #f6d365; }}
+  .matrix {{
+    border-collapse: collapse;
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }}
+  .matrix td {{
+    border: 1px solid var(--border);
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+    background: rgba(255,255,255,0.03);
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }}
+  .matrix td:hover {{
+    background: rgba(86, 212, 255, 0.08);
+  }}
+  .matrix td.sel {{
+    background: rgba(125, 255, 181, 0.14);
+    color: #dfffee;
+    border-color: rgba(125, 255, 181, 0.6);
+  }}
+  .row {{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }}
+  .controls {{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }}
+  .inline-stat {{
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--muted);
+  }}
+  .result-box {{
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    margin-top: 8px;
+    min-height: 42px;
+  }}
+  .result {{ font-weight: 700; }}
+  .error {{ color: var(--danger); }}
+  .charts h3 {{ margin: 0 0 8px 0; }}
+  .charts .grid {{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }}
+  .charts canvas {{
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 6px;
+  }}
+  ul {{ padding-left: 18px; }}
+  li {{ color: var(--muted); margin: 4px 0; }}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+<div class="page">
+<header>
+  <div class="brand">
+    <div class="chip">Poker Equity</div>
+    <div>
+      <div style="font-size:22px; line-height:1.1;">Poker Solver App</div>
+      <div class="hint">Pick your hero, shape villain ranges, lock a runout, then simulate.</div>
+    </div>
+  </div>
+  <div class="inline-stat">Current hero: <span id="heroDisplay">{hero}</span></div>
+</header>
+
 <div class="container">
-<h1>Poker Solver App</h1>
-<form id="equity-form" method="get">
-  <label>Hero Cards</label>
-  <div class="toggle-group" style="margin-bottom:0.25rem; color:#666;">
-    Select exactly two cards below. Current: <span id="heroDisplay">{hero}</span>
+  <div class="panel">
+    <h2>Simulation Setup</h2>
+    <div class="section-caption">Choose hero cards, villain ranges, and optional fixed boards.</div>
+    <form id="equity-form" method="get">
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Hero Selection</h3>
+          <span class="hint">Pick exactly two cards.</span>
+        </div>
+        <div id="heroGrid"></div>
+        <input type="hidden" id="hero" name="hero" value="{hero}" required>
+      </div>
+
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Villain Options</h3>
+          <span class="hint">Toggle between all combos or build a custom range matrix.</span>
+        </div>
+        <div class="pill-row">
+          <span class="pill active" id="villainAll" aria-pressed="true">All possible hands</span>
+          <span class="pill" id="villainRange" aria-pressed="false">Use range matrix</span>
+        </div>
+        <div id="rangeMatrixWrapper" style="margin-top:10px; display:none;"></div>
+        <input type="text" id="villain_range" name="villain_range" value="{villain}" placeholder="AA,KK,AKs" style="display:none;">
+      </div>
+
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Runout Selection</h3>
+          <span class="hint">Random runouts or lock 3-5 community cards.</span>
+        </div>
+        <div class="pill-row">
+          <span class="pill active" id="runoutAll" aria-pressed="true">All possible runouts</span>
+          <span class="pill" id="runoutSpecified" aria-pressed="false">Specified runout</span>
+        </div>
+        <div id="runoutGridWrapper" style="display:none; margin-top:10px;"></div>
+      </div>
+
+      <div class="section-block">
+        <div class="section-header">
+          <h3>Iterations</h3>
+          <span class="hint">Higher counts produce smoother estimates.</span>
+        </div>
+        <div class="row">
+          <div style="flex:1;">
+            <input type="number" id="iterations" name="iterations" value="{iterations}" min="1" required>
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button type="submit">Calculate Equity</button>
+          </div>
+          <span id="status" class="hint"></span>
+        </div>
+      </div>
+    </form>
+    <div class="result-box" id="result">{result}</div>
   </div>
-  <div id="heroGrid" class="card-grid"></div>
-  <input type="hidden" id="hero" name="hero" value="{hero}" required>
 
-  <label>Villain Range</label>
-  <div class="toggle-group">
-    <span class="pill active" id="villainAll">All possible hands</span>
-    <span class="pill" id="villainRange">Use range matrix</span>
-  </div>
-  <div id="rangeMatrixWrapper" style="margin-top:0.5rem; display:none;"></div>
-  <input type="text" id="villain_range" name="villain_range" value="{villain}" placeholder="AA,KK,AKs" style="display:none;">
-
-  <label>Runout</label>
-  <div class="toggle-group">
-    <span class="pill active" id="runoutAll">All possible runouts</span>
-    <span class="pill" id="runoutSpecified">Specified runout</span>
-  </div>
-  <div id="runoutGridWrapper" style="display:none; margin-top:0.5rem;"></div>
-
-  <label for="iterations">Number of Iterations</label>
-  <input type="number" id="iterations" name="iterations" value="{iterations}" min="1" required>
-  <button type="submit">Calculate Equity</button>
-  <span id="status" style="margin-left:1rem;"></span>
-</form>
-<div id="result">{result}</div>
-
-<div class="charts">
-  <div class="grid">
-    <div>
-      <h3>Hero Made-Hand Distribution</h3>
-      <canvas id="madeChart" width="400" height="300"></canvas>
+  <div class="panel">
+    <h2>Results & Charts</h2>
+    <div class="section-caption">Win/draw ratios, hand distributions, and sample runouts.</div>
+    <div class="charts">
+      <div class="grid">
+        <div>
+          <h3>Hero Made-Hand Distribution</h3>
+          <canvas id="madeChart" width="400" height="300"></canvas>
+        </div>
+        <div>
+          <h3>Won With Distribution</h3>
+          <canvas id="wonChart" width="400" height="300"></canvas>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <h3>Lost To Distribution</h3>
+        <canvas id="lostChart" width="820" height="300"></canvas>
+      </div>
+      <div style="margin-top:1rem;">
+        <h3>Sample Runouts</h3>
+        <ul id="examples"></ul>
+      </div>
+      <div style="margin-top:0.5rem; color:var(--muted);" id="comboCount"></div>
     </div>
-    <div>
-      <h3>Won With Distribution</h3>
-      <canvas id="wonChart" width="400" height="300"></canvas>
-    </div>
   </div>
-  <div style="margin-top:1rem;">
-    <h3>Lost To Distribution</h3>
-    <canvas id="lostChart" width="820" height="300"></canvas>
-  </div>
-  <div style="margin-top:1rem;">
-    <h3>Sample Runouts</h3>
-    <ul id="examples"></ul>
-  </div>
-  <div style="margin-top:0.5rem; color:#555;" id="comboCount"></div>
+</div>
+
 </div>
 
 <script>
@@ -94,6 +417,7 @@ let madeChart, wonChart, lostChart;
 // Suits and ranks for grids
 const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 const suits = ['s','c','h','d'];
+const suitLabel = { s: 'S', c: 'C', h: 'H', d: 'D' };
 
 // Build hero card grid
 const heroGrid = document.getElementById('heroGrid');
@@ -102,28 +426,50 @@ const heroDisplay = document.getElementById('heroDisplay');
 let heroSel = [];
 function renderHeroGrid() {
   heroGrid.innerHTML = '';
+  const table = document.createElement('table');
+  table.className = 'hero-matrix';
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  headRow.appendChild(document.createElement('th')); // corner
+  ranks.forEach(r => {
+    const th = document.createElement('th');
+    th.textContent = r;
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
   suits.forEach(s => {
+    const tr = document.createElement('tr');
+    const suitTh = document.createElement('th');
+    suitTh.textContent = suitLabel[s] || s.toUpperCase();
+    suitTh.className = 'suit-' + s;
+    tr.appendChild(suitTh);
     ranks.forEach(r => {
       const card = r + s;
-      const div = document.createElement('div');
-      div.className = 'card' + (heroSel.includes(card) ? ' sel' : '');
-      div.textContent = card;
-      div.onclick = () => {
+      const td = document.createElement('td');
+      td.className = 'hero-cell suit-' + s + (heroSel.includes(card) ? ' sel' : '');
+      td.textContent = card;
+      td.onclick = () => {
         const idx = heroSel.indexOf(card);
         if (idx >= 0) {
           heroSel.splice(idx,1);
         } else if (heroSel.length < 2) {
           heroSel.push(card);
         }
-        // enforce max 2
         if (heroSel.length > 2) heroSel = heroSel.slice(0,2);
         heroHidden.value = heroSel.join('');
         heroDisplay.textContent = heroHidden.value || '(none)';
         renderHeroGrid();
+        if (runoutSpecPill && runoutSpecPill.classList.contains('active')) renderRunoutGrid();
       };
-      heroGrid.appendChild(div);
+      tr.appendChild(td);
     });
+    tbody.appendChild(tr);
   });
+  table.appendChild(tbody);
+  heroGrid.appendChild(table);
 }
 // Initialize hero selection from prefilled value if any
 (function initHeroFromValue(){
@@ -168,17 +514,13 @@ function renderRangeMatrix(){
 }
 renderRangeMatrix();
 function setVillainMode(mode){
-  if (mode === 'all'){
-    villainAllPill.classList.add('active');
-    villainRangePill.classList.remove('active');
-    rangeMatrixWrapper.style.display = 'none';
-    villainRangeInput.style.display = 'none';
-  } else {
-    villainAllPill.classList.remove('active');
-    villainRangePill.classList.add('active');
-    rangeMatrixWrapper.style.display = '';
-    villainRangeInput.style.display = '';
-  }
+  const isAll = mode === 'all';
+  villainAllPill.classList.toggle('active', isAll);
+  villainRangePill.classList.toggle('active', !isAll);
+  villainAllPill.setAttribute('aria-pressed', isAll);
+  villainRangePill.setAttribute('aria-pressed', !isAll);
+  rangeMatrixWrapper.style.display = isAll ? 'none' : '';
+  villainRangeInput.style.display = isAll ? 'none' : '';
 }
 villainAllPill.onclick = () => setVillainMode('all');
 villainRangePill.onclick = () => setVillainMode('range');
@@ -217,16 +559,13 @@ function renderRunoutGrid(){
   runoutGridWrapper.appendChild(grid);
 }
 function setRunoutMode(mode){
-  if (mode === 'all'){
-    runoutAllPill.classList.add('active');
-    runoutSpecPill.classList.remove('active');
-    runoutGridWrapper.style.display = 'none';
-  } else {
-    runoutAllPill.classList.remove('active');
-    runoutSpecPill.classList.add('active');
-    runoutGridWrapper.style.display = '';
-    renderRunoutGrid();
-  }
+  const isAll = mode === 'all';
+  runoutAllPill.classList.toggle('active', isAll);
+  runoutSpecPill.classList.toggle('active', !isAll);
+  runoutAllPill.setAttribute('aria-pressed', isAll);
+  runoutSpecPill.setAttribute('aria-pressed', !isAll);
+  runoutGridWrapper.style.display = isAll ? 'none' : '';
+  if (!isAll) renderRunoutGrid();
 }
 runoutAllPill.onclick = () => setRunoutMode('all');
 runoutSpecPill.onclick = () => setRunoutMode('specified');
