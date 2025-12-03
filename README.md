@@ -24,7 +24,7 @@ pip install -r requirements.txt
 ## Run the web app
 
 ```bash
-uvicorn app:app --reload
+uvicorn src.app:app --reload --reload-dir src
 ```
 
 Open http://127.0.0.1:8000 and use the UI to pick a hero hand, choose a villain
@@ -56,7 +56,7 @@ Returns equity plus win/draw ratios and distributions for charting.
 ## CLI usage
 
 ```bash
-python poker_solver_cli.py --hero AsKd --villain_range "AA,KK,AKs" --iterations 5000
+python -m src.poker_solver_cli --hero AsKd --villain_range "AA,KK,AKs" --iterations 5000
 ```
 
 Outputs the estimated equity for the supplied hero hand versus the expanded

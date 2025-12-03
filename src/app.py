@@ -2,13 +2,13 @@ import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
-from poker_solver_cli import (
+from .poker_solver_cli import (
     parse_hero,
     parse_range,
     calculate_equity,
     calculate_equity_details,
 )
-import poker_solver as ps
+from . import poker_solver as ps
 
 app = FastAPI()
 
@@ -19,291 +19,388 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <title>Poker Solver App</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap');
-  :root {{
-    --bg: #0c1224;
-    --panel: #111833;
-    --card: #0d1b3d;
-    --accent: #56d4ff;
-    --accent-2: #7dffb5;
-    --text: #e9edf7;
-    --muted: #a5b3d1;
-    --danger: #ff6b6b;
-    --border: rgba(255,255,255,0.08);
-  }}
-  * {{ box-sizing: border-box; }}
-  body {{
+
+  :root {
+    --bg: #020617;
+    --panel: #020617;
+    --card: #020617;
+    --accent: #22c55e;
+    --accent-2: #a3e635;
+    --text: #f9fafb;
+    --muted: #9ca3af;
+    --danger: #f97373;
+    --border: rgba(148, 163, 184, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
     margin: 0;
-    font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
-    background: radial-gradient(circle at 20% 20%, rgba(86, 212, 255, 0.12), transparent 35%), 
-                radial-gradient(circle at 80% 0%, rgba(125, 255, 181, 0.14), transparent 30%),
-                var(--bg);
+    font-family: 'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(34, 197, 94, 0.20), transparent 55%),
+      radial-gradient(circle at 85% 0%, rgba(59, 130, 246, 0.18), transparent 55%),
+      radial-gradient(circle at 50% 100%, #052e16 0, #020617 55%);
     color: var(--text);
     min-height: 100vh;
-    padding: 36px 20px 28px;
+    padding: 32px 20px 24px;
     display: flex;
     justify-content: center;
-  }}
-  .page {{
+  }
+
+  .page {
     width: 100%;
     max-width: 1240px;
-  }}
-  .container {{
+  }
+
+  .container {
     display: grid;
     grid-template-columns: 1.05fr 0.95fr;
     gap: 20px;
-  }}
-  header {{
+  }
+
+  header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 18px;
-  }}
-  .brand {{
+    margin-bottom: 20px;
+  }
+
+  .brand {
     font-weight: 700;
     letter-spacing: 0.5px;
     display: flex;
     align-items: center;
     gap: 10px;
-  }}
-  .chip {{
+  }
+
+  .chip {
     padding: 4px 10px;
     border-radius: 999px;
-    background: rgba(86, 212, 255, 0.12);
+    background: rgba(22, 163, 74, 0.18);
     border: 1px solid var(--border);
-    color: var(--accent);
+    color: var(--accent-2);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-  }}
-  .panel {{
-    background: var(--panel);
+  }
+
+  .panel {
+    background: radial-gradient(circle at top left, rgba(34,197,94,0.25), rgba(15,23,42,0.96));
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-  }}
-  .panel h2 {{
+    border-radius: 18px;
+    padding: 18px 18px 16px;
+    box-shadow: 0 18px 55px rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+  }
+
+  .panel h2 {
     margin: 0 0 10px 0;
     font-size: 18px;
     letter-spacing: 0.02em;
-  }}
-  .section-caption {{
+  }
+
+  .section-caption {
     color: var(--muted);
     font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  .section-block {
+    border: 1px solid rgba(148,163,184,0.45);
+    background: radial-gradient(circle at top, rgba(15,118,110,0.22), var(--card));
+    border-radius: 14px;
+    padding: 12px 12px 10px;
     margin-bottom: 12px;
-  }}
-  .section-block {{
-    border: 1px solid var(--border);
-    background: var(--card);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 12px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-  }}
-  .section-header {{
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  .section-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
     margin-bottom: 10px;
-  }}
-  .section-header h3 {{
+  }
+
+  .section-header h3 {
     margin: 0;
     font-size: 16px;
     letter-spacing: 0.01em;
-  }}
-  form {{
+  }
+
+  form {
     display: grid;
     gap: 14px;
-  }}
-  label {{
+  }
+
+  label {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     font-weight: 600;
-  }}
-  .hint {{
+  }
+
+  .hint {
     font-size: 12px;
     color: var(--muted);
-  }}
-  .pill-row {{
+  }
+
+  .pill-row {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
-  }}
-  .pill {{
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.03);
+  }
+
+  .pill {
+    padding: 7px 12px;
+    border-radius: 999px;
+    background: rgba(15,23,42,0.8);
     color: var(--muted);
     border: 1px solid var(--border);
     cursor: pointer;
     user-select: none;
     transition: all 0.15s ease;
-  }}
-  .pill.active {{
-    background: rgba(86, 212, 255, 0.14);
-    border-color: rgba(86, 212, 255, 0.6);
+    font-size: 12px;
+  }
+
+  .pill:hover {
+    border-color: rgba(34,197,94,0.6);
     color: var(--text);
-  }}
-  .pill.active::after {{
+  }
+
+  .pill.active {
+    background: rgba(22,163,74,0.28);
+    border-color: rgba(34,197,94,0.9);
+    color: var(--text);
+  }
+
+  .pill.active::after {
     content: 'ON';
     margin-left: 8px;
     font-weight: 700;
     color: var(--accent-2);
-  }}
-  input[type="text"], input[type="number"] {{
+  }
+
+  input[type="text"],
+  input[type="number"] {
     width: 100%;
     padding: 10px 12px;
     border-radius: 10px;
     border: 1px solid var(--border);
-    background: var(--card);
+    background: rgba(15,23,42,0.95);
     color: var(--text);
-  }}
-  input::placeholder {{ color: var(--muted); }}
-  button {{
-    padding: 12px 14px;
-    border-radius: 12px;
-    background: linear-gradient(120deg, var(--accent), var(--accent-2));
-    color: #05070f;
+    font-size: 13px;
+  }
+
+  input::placeholder { color: var(--muted); }
+
+  button {
+    padding: 11px 16px;
+    border-radius: 999px;
+    background: radial-gradient(circle at top left, var(--accent-2), var(--accent));
+    color: #022c22;
     border: none;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }}
-  button:hover {{ transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,0.3); }}
-  .pill, button {{ font-family: 'Space Grotesk', 'Segoe UI', sans-serif; }}
-  .card-grid {{
+    transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+    font-size: 13px;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 14px 30px rgba(21,128,61,0.6);
+  }
+
+  button:active {
+    transform: translateY(0);
+    box-shadow: 0 5px 14px rgba(21,128,61,0.55);
+  }
+
+  .pill,
+  button { font-family: 'Space Grotesk', 'Segoe UI', sans-serif; }
+
+  .card-grid {
     display: grid;
     grid-template-columns: repeat(13, minmax(32px, 1fr));
     gap: 4px;
-    background: var(--card);
+    background: rgba(15,23,42,0.96);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 10px;
-  }}
-  .card {{
-    padding: 8px 4px;
-    border-radius: 8px;
+  }
+
+  .card {
+    padding: 7px 4px;
+    border-radius: 9px;
     text-align: center;
     font-weight: 600;
-    background: rgba(255,255,255,0.04);
+    background: rgba(15,23,42,1);
     border: 1px solid transparent;
     cursor: pointer;
     transition: all 0.12s ease;
-  }}
-  .card:hover {{ border-color: rgba(86, 212, 255, 0.4); }}
-  .card.sel {{
-    background: rgba(125, 255, 181, 0.14);
-    border-color: rgba(125, 255, 181, 0.7);
-    color: #dfffee;
-  }}
-  .hero-matrix {{
+    font-size: 12px;
+  }
+
+  .card:hover {
+    border-color: rgba(34,197,94,0.6);
+  }
+
+  .card.sel {
+    background: rgba(22,163,74,0.28);
+    border-color: rgba(34,197,94,0.9);
+    color: #ecfdf3;
+  }
+
+  .hero-matrix {
     width: 100%;
     border-collapse: collapse;
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
-    background: var(--card);
-  }}
+    background: rgba(15,23,42,0.96);
+  }
+
   .hero-matrix th,
-  .hero-matrix td {{
-    border: 1px solid var(--border);
-    padding: 8px 6px;
+  .hero-matrix td {
+    border: 1px solid rgba(30,64,175,0.65);
+    padding: 7px 4px;
     text-align: center;
     font-size: 12px;
-  }}
-  .hero-matrix th {{
+  }
+
+  .hero-matrix th {
     color: var(--muted);
-    background: rgba(255,255,255,0.03);
+    background: rgba(15,23,42,0.9);
     font-weight: 600;
-  }}
-  .hero-cell {{
+  }
+
+  .hero-cell {
     cursor: pointer;
-    background: rgba(255,255,255,0.02);
+    background: rgba(15,23,42,0.9);
     transition: all 0.12s ease;
     font-weight: 700;
-  }}
-  .hero-cell:hover {{ background: rgba(86, 212, 255, 0.08); }}
-  .hero-cell.sel {{
-    background: rgba(125, 255, 181, 0.16);
-    color: #dfffee;
-    border-color: rgba(125, 255, 181, 0.6);
-  }}
-  .suit-s {{ color: #56d4ff; }}
-  .suit-c {{ color: #7dffb5; }}
-  .suit-h {{ color: #ff7b9c; }}
-  .suit-d {{ color: #f6d365; }}
-  .matrix {{
+  }
+
+  .hero-cell:hover {
+    background: rgba(34,197,94,0.14);
+  }
+
+  .hero-cell.sel {
+    background: rgba(22,163,74,0.3);
+    color: #ecfdf3;
+    border-color: rgba(74,222,128,0.9);
+  }
+
+  .suit-s { color: #38bdf8; }
+  .suit-c { color: #22c55e; }
+  .suit-h { color: #fb7185; }
+  .suit-d { color: #fde047; }
+
+  .matrix {
     border-collapse: collapse;
     width: 100%;
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
-  }}
-  .matrix td {{
-    border: 1px solid var(--border);
-    padding: 8px 4px;
+  }
+
+  .matrix td {
+    border: 1px solid rgba(30,64,175,0.65);
+    padding: 7px 4px;
     text-align: center;
     font-size: 12px;
     cursor: pointer;
-    background: rgba(255,255,255,0.03);
+    background: rgba(15,23,42,0.9);
     transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-  }}
-  .matrix td:hover {{
-    background: rgba(86, 212, 255, 0.08);
-  }}
-  .matrix td.sel {{
-    background: rgba(125, 255, 181, 0.14);
-    color: #dfffee;
-    border-color: rgba(125, 255, 181, 0.6);
-  }}
-  .row {{
+  }
+
+  .matrix td:hover {
+    background: rgba(34,197,94,0.14);
+  }
+
+  .matrix td.sel {
+    background: rgba(22,163,74,0.3);
+    color: #ecfdf3;
+    border-color: rgba(74,222,128,0.9);
+  }
+
+  /* shared highlight glow */
+  .matrix td.sel,
+  .card.sel,
+  .hero-cell.sel {
+    box-shadow:
+      0 0 0 1px rgba(74,222,128,0.7),
+      0 10px 18px rgba(0,0,0,0.55);
+  }
+
+  .row {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
-  }}
-  .controls {{
+  }
+
+  .controls {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
-  }}
-  .inline-stat {{
+  }
+
+  .inline-stat {
     padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.04);
+    border-radius: 999px;
+    background: rgba(15,23,42,0.9);
     border: 1px solid var(--border);
     font-size: 13px;
     color: var(--muted);
-  }}
-  .result-box {{
+  }
+
+  .inline-stat span {
+    color: var(--accent-2);
+  }
+
+  .result-box {
     padding: 12px;
     border-radius: 12px;
-    background: rgba(255,255,255,0.03);
+    background: rgba(15,23,42,0.9);
     border: 1px solid var(--border);
     margin-top: 8px;
     min-height: 42px;
-  }}
-  .result {{ font-weight: 700; }}
-  .error {{ color: var(--danger); }}
-  .charts h3 {{ margin: 0 0 8px 0; }}
-  .charts .grid {{
+    font-size: 14px;
+  }
+
+  .result { font-weight: 700; }
+
+  .error { color: var(--danger); }
+
+  .charts h3 { margin: 0 0 8px 0; font-size: 14px; }
+
+  .charts .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 14px;
-  }}
-  .charts canvas {{
-    background: var(--card);
+  }
+
+  .charts canvas {
+    background: rgba(15,23,42,0.96);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 6px;
-  }}
-  ul {{ padding-left: 18px; }}
-  li {{ color: var(--muted); margin: 4px 0; }}
+  }
+
+  ul { padding-left: 18px; }
+  li { color: var(--muted); margin: 4px 0; }
+
+  @media (max-width: 920px) {
+    .container {
+      grid-template-columns: 1fr;
+    }
+  }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -414,23 +511,28 @@ const resultEl = document.getElementById('result');
 const examplesEl = document.getElementById('examples');
 const comboEl = document.getElementById('comboCount');
 let madeChart, wonChart, lostChart;
-// Suits and ranks for grids
+
+function applySelectionHighlight(el, isSelected) {
+  el.classList.toggle('sel', isSelected);
+  el.dataset.selected = isSelected ? 'true' : 'false';
+}
+
 const ranks = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
 const suits = ['s','c','h','d'];
 const suitLabel = { s: 'S', c: 'C', h: 'H', d: 'D' };
 
-// Build hero card grid
 const heroGrid = document.getElementById('heroGrid');
 const heroHidden = document.getElementById('hero');
 const heroDisplay = document.getElementById('heroDisplay');
 let heroSel = [];
+
 function renderHeroGrid() {
   heroGrid.innerHTML = '';
   const table = document.createElement('table');
   table.className = 'hero-matrix';
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
-  headRow.appendChild(document.createElement('th')); // corner
+  headRow.appendChild(document.createElement('th'));
   ranks.forEach(r => {
     const th = document.createElement('th');
     th.textContent = r;
@@ -449,7 +551,8 @@ function renderHeroGrid() {
     ranks.forEach(r => {
       const card = r + s;
       const td = document.createElement('td');
-      td.className = 'hero-cell suit-' + s + (heroSel.includes(card) ? ' sel' : '');
+      td.className = 'hero-cell suit-' + s;
+      applySelectionHighlight(td, heroSel.includes(card));
       td.textContent = card;
       td.onclick = () => {
         const idx = heroSel.indexOf(card);
@@ -471,25 +574,27 @@ function renderHeroGrid() {
   table.appendChild(tbody);
   heroGrid.appendChild(table);
 }
-// Initialize hero selection from prefilled value if any
+
 (function initHeroFromValue(){
   const v = (heroHidden.value||'').trim();
   if (v.length === 4) heroSel = [v.slice(0,2), v.slice(2)];
 })();
 renderHeroGrid();
 
-// Villain range matrix (13x13)
+// villain matrix
 const villainAllPill = document.getElementById('villainAll');
 const villainRangePill = document.getElementById('villainRange');
 const rangeMatrixWrapper = document.getElementById('rangeMatrixWrapper');
 const villainRangeInput = document.getElementById('villain_range');
 let rangeSel = new Set();
+
 function handLabel(i,j){
   const r1 = ranks[i];
   const r2 = ranks[j];
-  if (i === j) return r1 + r2; // pairs
+  if (i === j) return r1 + r2;
   return (i < j) ? (r1 + r2 + 's') : (r2 + r1 + 'o');
 }
+
 function renderRangeMatrix(){
   const table = document.createElement('table');
   table.className = 'matrix';
@@ -499,7 +604,7 @@ function renderRangeMatrix(){
       const td = document.createElement('td');
       const label = handLabel(i,j);
       td.textContent = label;
-      if (rangeSel.has(label)) td.classList.add('sel');
+      applySelectionHighlight(td, rangeSel.has(label));
       td.onclick = () => {
         if (rangeSel.has(label)) rangeSel.delete(label); else rangeSel.add(label);
         renderRangeMatrix();
@@ -513,6 +618,7 @@ function renderRangeMatrix(){
   villainRangeInput.value = Array.from(rangeSel).join(',');
 }
 renderRangeMatrix();
+
 function setVillainMode(mode){
   const isAll = mode === 'all';
   villainAllPill.classList.toggle('active', isAll);
@@ -526,11 +632,12 @@ villainAllPill.onclick = () => setVillainMode('all');
 villainRangePill.onclick = () => setVillainMode('range');
 setVillainMode('all');
 
-// Runout selection grid
+// runout grid
 const runoutAllPill = document.getElementById('runoutAll');
 const runoutSpecPill = document.getElementById('runoutSpecified');
 const runoutGridWrapper = document.getElementById('runoutGridWrapper');
 let runoutSel = [];
+
 function renderRunoutGrid(){
   const grid = document.createElement('div');
   grid.className = 'card-grid';
@@ -538,7 +645,8 @@ function renderRunoutGrid(){
     ranks.forEach(r => {
       const card = r + s;
       const div = document.createElement('div');
-      div.className = 'card' + (runoutSel.includes(card) ? ' sel' : '');
+      div.className = 'card';
+      applySelectionHighlight(div, runoutSel.includes(card));
       div.textContent = card;
       div.onclick = () => {
         const idx = runoutSel.indexOf(card);
@@ -546,8 +654,10 @@ function renderRunoutGrid(){
         else if (runoutSel.length < 5) runoutSel.push(card);
         renderRunoutGrid();
       };
-      // disable hero cards
-      if (heroSel.includes(card)) div.style.opacity = 0.5, div.style.pointerEvents='none';
+      if (heroSel.includes(card)) {
+        div.style.opacity = 0.5;
+        div.style.pointerEvents='none';
+      }
       grid.appendChild(div);
     });
   });
@@ -558,6 +668,7 @@ function renderRunoutGrid(){
   runoutGridWrapper.appendChild(info);
   runoutGridWrapper.appendChild(grid);
 }
+
 function setRunoutMode(mode){
   const isAll = mode === 'all';
   runoutAllPill.classList.toggle('active', isAll);
@@ -576,13 +687,24 @@ function renderBarChart(ctx, dataMap, title) {
   const data = labels.map(k => dataMap[k]);
   return new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: title, data, backgroundColor: '#4e79a7' }] },
-    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { callback: v => (v*100).toFixed(1)+'%' } } }, plugins: { legend: { display:false } } }
+    data: { labels, datasets: [{ label: title, data, backgroundColor: '#16a34a' }] },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => (v*100).toFixed(1)+'%'
+          }
+        }
+      },
+      plugins: { legend: { display:false } }
+    }
   });
 }
 
 function updateCharts(res) {
-  const made = res.made_distribution || {}; 
+  const made = res.made_distribution || {};
   const won = res.won_with_distribution || {};
   const lost = res.lost_to_distribution || {};
   if (madeChart) madeChart.destroy();
@@ -609,7 +731,11 @@ form.addEventListener('submit', async (e) => {
   examplesEl.innerHTML = '';
   comboEl.textContent = '';
   try {
-    const resp = await fetch('/api/equity', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hero, villain_range, iterations, villain_mode, runout_mode, runout }) });
+    const resp = await fetch('/api/equity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hero, villain_range, iterations, villain_mode, runout_mode, runout })
+    });
     if (!resp.ok) {
       const text = await resp.text();
       throw new Error(text || ('HTTP '+resp.status));
@@ -637,10 +763,8 @@ form.addEventListener('submit', async (e) => {
   }
 });
 </script>
-</div>
 </body>
 </html>"""
-
 
 @app.get("/", response_class=HTMLResponse)
 async def index(hero: str = "", villain_range: str = "", iterations: int = 1000) -> str:
@@ -665,15 +789,13 @@ async def index(hero: str = "", villain_range: str = "", iterations: int = 1000)
         .replace("{result}", result_html)
     )
 
-
 class EquityRequest(BaseModel):
     hero: str
     villain_range: str
     iterations: int = 1000
-    villain_mode: str | None = None  # 'all' or 'range'
-    runout_mode: str | None = None   # 'all' or 'specified'
-    runout: list[str] | None = None  # optional 3-5 cards in usual notation like ['As','Kd',...]
-
+    villain_mode: str | None = None
+    runout_mode: str | None = None
+    runout: list[str] | None = None
 
 @app.post("/api/equity")
 async def api_equity(req: EquityRequest) -> JSONResponse:
@@ -685,12 +807,10 @@ async def api_equity(req: EquityRequest) -> JSONResponse:
     villain_mode = (req.villain_mode or 'all').lower()
     runout_mode = (req.runout_mode or 'all').lower()
 
-    # Villain combos resolution
     try:
         if villain_mode == 'range':
             villain_combos = parse_range(req.villain_range or '')
         else:
-            # all possible villain two-card combos excluding hero cards
             villain_combos = []
             all_cards = [f"{n}{s}" for s in 'schd' for n in range(2,15)]
             remaining = [c for c in all_cards if c not in hero_cards]
@@ -703,7 +823,7 @@ async def api_equity(req: EquityRequest) -> JSONResponse:
         raise HTTPException(status_code=400, detail=str(exc))
 
     loop = asyncio.get_running_loop()
-    # Runout handling: if specified, convert and use fixed or completed runouts per iteration
+
     def simulate():
         iterations = int(req.iterations)
         win = draw = lose = 0
@@ -715,7 +835,6 @@ async def api_equity(req: EquityRequest) -> JSONResponse:
         lost_to_counts = {k: 0 for k in made_counts}
         examples = []
 
-        # Prepare specified runout in computing format if provided
         runout_spec = None
         if runout_mode == 'specified' and req.runout:
             try:
@@ -761,9 +880,11 @@ async def api_equity(req: EquityRequest) -> JSONResponse:
         equity = (win + 0.5 * draw) / total
         win_ratio = win / total
         draw_ratio = draw / total
+
         def to_freq(counts):
             denom = sum(counts.values()) or 1
             return {k: counts[k] / denom for k in counts}
+
         return {
             "equity": equity,
             "win_ratio": win_ratio,

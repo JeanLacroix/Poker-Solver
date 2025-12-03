@@ -26,7 +26,7 @@ import argparse
 import random
 from typing import List, Dict
 
-import poker_solver as ps
+from . import poker_solver as ps
 
 
 def parse_hero(hero_str: str) -> List[str]:
