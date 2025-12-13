@@ -26,7 +26,20 @@ import argparse
 import random
 from typing import List, Dict
 
-from . import poker_solver as ps
+# Support both package imports (preferred) and running as a script/module.
+try:
+    from . import poker_solver as ps  # type: ignore
+except ImportError:
+    import pathlib
+    import sys
+
+    here = pathlib.Path(__file__).resolve().parent
+    root = here.parent
+    for path in (here, root):
+        p = str(path)
+        if p not in sys.path:
+            sys.path.append(p)
+    import poker_solver as ps  # type: ignore
 
 
 def parse_hero(hero_str: str) -> List[str]:

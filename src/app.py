@@ -1,14 +1,31 @@
 import asyncio
+import pathlib
+import sys
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
-from .poker_solver_cli import (
-    parse_hero,
-    parse_range,
-    calculate_equity,
-    calculate_equity_details,
-)
-from . import poker_solver as ps
+
+# Import solver helpers; tolerate being run as a module or as a script.
+try:
+    from .poker_solver_cli import (
+        calculate_equity,
+        calculate_equity_details,
+        parse_hero,
+        parse_range,
+    )
+    from . import poker_solver as ps
+except ImportError:
+    # Fallback for invocations like `uvicorn app:app --app-dir src`
+    here = pathlib.Path(__file__).resolve().parent
+    if str(here) not in sys.path:
+        sys.path.append(str(here))
+    from poker_solver_cli import (  # type: ignore
+        calculate_equity,
+        calculate_equity_details,
+        parse_hero,
+        parse_range,
+    )
+    import poker_solver as ps  # type: ignore
 
 app = FastAPI()
 
